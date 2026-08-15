@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bharat Billing - Seller Login</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="favicon.jpeg" type="image/png" />
+  <link rel="apple-touch-icon" href="logo192.png" />
+  <link rel="manifest" href="manifest.json" />
+  <!-- Loader Styles -->
+<style>
+  #bharatLoader {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #fff3e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 9999;
+    transition: opacity 1.2s ease-out;
+    opacity: 1;
+    color: white;
+    font-family: system-ui, sans-serif;
+  }
+
+  #bharatLoader .logo-container {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin-bottom: 35px;
+  }
+
+  #bharatLoader img.logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+    box-shadow: 0 8px 35px rgba(0,0,0,0.4);
+    animation: pulse 2.8s infinite ease-in-out;
+  }
+
+  #bharatLoader h1 {
+    font-size: 50px;
+    margin: 0 0 12px 0;
+    color: #1e6b2d;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+  }
+
+  #bharatLoader p {
+    font-size: 24px;
+    margin: 8px 0 0 0;
+    opacity: 0.95;
+    font-weight: 500;
+    color: #d84315;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.12); opacity: 0.92; }
+  }
+</style>
+</head>
+<body class="login-body">
+  <div id="bharatLoader">
+  <div class="logo-container">
+    <img src="favicon.jpeg" alt="Bharat Billing Pro Logo" class="logo">
+  </div>
+  
+  <h1>Bharat Billing Pro</h1>
+  <p>Loading, please wait... 🚀</p>
+</div>
+  <div class="login-container">
+    <h1>Bharat Billing</h1>
+    <p class="tagline">Seller Login Only</p>
+
+    <div id="loginForm">
+      <input type="text" id="username" placeholder="Username" class="input" autocomplete="off"/>
+      <input type="password" id="password" placeholder="Password" class="input" />
+      <input type="password" id="pin" placeholder="OR Enter PIN (optional)" class="input" />
+      <button onclick="login()" class="btn btn-green big">Login</button>
+      <button onclick="showRegister()" class="btn btn-blue big">Register New Seller</button>
+      <button onclick="showRecover()" class="btn" style="background:#ff9800;">Forgot?</button>
+    </div>
+
+    <div id="registerForm" style="display:none;">
+      <h3>Create New Seller</h3>
+      <input type="text" id="regUser" placeholder="Username" class="input"/>
+      <input type="password" id="regPass" placeholder="Password" class="input"/>
+      <input type="password" id="regPin" placeholder="Set 4-6 digit PIN (optional)" class="input"/>
+      <input type="text" id="regShop" placeholder="Shop Name" class="input"/>
+      <input type="text" id="regAddr" placeholder="Address" class="input"/>
+      <input type="tel" id="regMobile" placeholder="Mobile Number" class="input"/>
+      <button onclick="register()" class="btn btn-green big">Create Account</button>
+      <button onclick="backToLogin()" class="btn btn-red">Back</button>
+    </div>
+
+    <div id="recoverForm" style="display:none;">
+      <h3>Recover Account</h3>
+      <input type="tel" id="recoverMobile" placeholder="Mobile Number" class="input"/>
+      <button onclick="recover()" class="btn btn-green big">Recover</button>
+      <button onclick="backToLogin()" class="btn btn-red">Back</button>
+    </div>
+  </div>
+
+  <script>
+    function backToLogin(){ document.getElementById('loginForm').style.display='block'; document.getElementById('registerForm').style.display='none'; document.getElementById('recoverForm').style.display='none'; }
+    function showRegister(){ document.getElementById('loginForm').style.display='none'; document.getElementById('registerForm').style.display='block'; }
+    function showRecover(){ document.getElementById('loginForm').style.display='none'; document.getElementById('recoverForm').style.display='block'; }
+
+    async function hashPass(pass) {
+      const enc = new TextEncoder();
+      const buf = await crypto.subtle.digest('SHA-256', enc.encode(pass));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
+    async function register(){
+      let u=document.getElementById('regUser').value.trim(), p=document.getElementById('regPass').value, pin=document.getElementById('regPin').value.trim(), s=document.getElementById('regShop').value.trim(), m=document.getElementById('regMobile').value.trim();
+      if(!u||!p||!s||!m) return alert("All fields mandatory!");
+      let users=JSON.parse(localStorage.getItem('bharat_users')||'[]');
+      if(users.find(x=>x.user===u)) return alert("Username taken!");
+      const passHash = await hashPass(p);
+      const pinHash = pin ? await hashPass(pin) : null;
+      users.push({user:u,passHash:passHash,pinHash:pinHash,shop:{name:s,mobile:m}});
+      localStorage.setItem('bharat_users',JSON.stringify(users));
+      alert("Account created! Login now"); backToLogin();
+    }
+
+    async function login(){
+      let u=document.getElementById('username').value.trim(), p=document.getElementById('password').value, pin=document.getElementById('pin').value.trim();
+      let users=JSON.parse(localStorage.getItem('bharat_users')||'[]');
+      if(pin){
+        const pinHash = await hashPass(pin);
+        let found = users.find(x=>x.user===u && x.pinHash===pinHash);
+        if(found){ localStorage.setItem("bharat_logged_in",u); localStorage.setItem("owner",u); location.href="index.html"; return; }
+        else return alert("Wrong PIN or username!");
+      }
+      const passHash = await hashPass(p);
+      let found=users.find(x=>x.user===u && x.passHash===passHash);
+      if(found){ localStorage.setItem("bharat_logged_in",u); localStorage.setItem("owner",u); location.href="index.html"; }
+      else alert("Wrong credentials!");
+    }
+
+    function recover(){
+      let m=document.getElementById('recoverMobile').value.trim();
+      let users=JSON.parse(localStorage.getItem('bharat_users')||'[]');
+      let found=users.find(x=>x.shop?.mobile===m);
+      if(found) alert(`Username: ${found.user}\nIf you forgot your password or PIN, please re-register or contact support.`);
+      else alert("No account found!");
+    }
+  </script>
+  <!-- LOADER JS -->
+<script>
+  window.addEventListener("load", () => {
+    const loader = document.getElementById("bharatLoader");
+    if (!loader) return;
+    setTimeout(() => {
+      loader.style.opacity = "0";
+      setTimeout(() => {
+        if (loader && loader.parentNode) {
+          loader.parentNode.removeChild(loader);
+        }
+      }, 1300);
+    }, 1800);
+  });
+
+  setTimeout(() => {
+    const loader = document.getElementById("bharatLoader");
+    if (loader && loader.parentNode) {
+      loader.style.opacity = "0";
+      setTimeout(() => {
+        if (loader.parentNode) loader.parentNode.removeChild(loader);
+      }, 1000);
+    }
+  }, 6000);
+</script>
+</body>
+</html>

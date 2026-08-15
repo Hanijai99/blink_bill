@@ -1,0 +1,60 @@
+<!-- loader.html -->
+<div id="bharatLoader">
+  <div class="logo-container">
+    <img src="logo193.jpeg" alt="Bharat Billing Pro Logo" class="logo">
+  </div>
+  
+  <h1>BLINK BILL</h1>
+  <p>Loading, please wait... 🚀</p>
+</div>
+
+<style>
+  #bharatLoader {
+    position: fixed;
+    inset: 0;
+    width: 100%; height: 100%;
+    background: #f8f9fa;          /* light gray – clean & modern, nee venumna vera color podu */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 999999;              /* very high z-index */
+    transition: opacity 1.2s ease-out;
+    opacity: 1;
+    color: #333;
+    font-family: system-ui, sans-serif;
+  }
+
+  .logo-container {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin-bottom: 35px;
+  }
+
+  .logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+    box-shadow: 0 8px 35px rgba(0,0,0,0.25);
+    animation: pulse 2.8s infinite ease-in-out;
+  }
+
+  h1 {
+    font-size: 48px;
+    margin: 0 0 12px 0;
+    color: #1e6b2d;               /* green theme match */
+  }
+
+  p {
+    font-size: 22px;
+    margin: 8px 0;
+    opacity: 0.9;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.12); opacity: 0.92; }
+  }
+</style>

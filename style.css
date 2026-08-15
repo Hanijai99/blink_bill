@@ -1,0 +1,423 @@
+* { margin:0; padding:0; box-sizing:border-box; font-family:system-ui,sans-serif; }
+body { background:#120f03; padding:15px; transition:0.4s; min-height:100vh; }
+.container { max-width:500px; margin:20px auto; padding:20px; background:white; border-radius:28px; box-shadow:0 20px 60px rgba(0,100,0,0.3); position:relative; z-index:1; }
+h1 { text-align:center; color:#006400; font-size:2.8rem; margin:20px 0; font-weight:900; }
+.input { width:100%; padding:18px; margin:12px 0; border:2px solid #ccc; border-radius:20px; font-size:1.2rem; }
+.input:focus { outline:none; border-color:#006400; }
+.grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:15px; }
+@media(max-width:480px){ .grid{grid-template-columns:1fr;} }
+.btn { padding:16px 20px; border:none; border-radius:50px; color:white; font-weight:bold; cursor:pointer; margin:8px 4px; box-shadow:0 8px 20px rgba(0,0,0,0.2); }
+.btn-green { background:linear-gradient(135deg,#006400,#009900); }
+.btn-wa { background:linear-gradient(135deg,#25D366,#128C7E); }
+.btn-blue { background:linear-gradient(135deg,#1976d2,#0d47a1); }
+.btn-upi { background:linear-gradient(135deg,#9c27b0,#6a1fa2); }
+.btn-stock { background:linear-gradient(135deg,#ff9800,#f57c00); }
+.buttons { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px; margin:25px 0; }
+.total { background:linear-gradient(135deg,#ff9a9e,#fad0c4); padding:30px; border-radius:25px; text-align:center; margin:30px 0; font-size:1.5rem; }
+.total .big { font-size:3.2rem; color:#c62828; font-weight:900; }
+.logout-btn { position:fixed; top:15px; right:15px; z-index:99999; background:#e53935; padding:12px 24px; border-radius:50px; color:white; font-weight:bold; }
+.suggestions { max-height:300px; overflow-y:auto; background:white; border:1px solid #ddd; border-radius:12px; position:absolute; width:100%; z-index:999; display:none; }
+.suggest-item { padding:14px; border-bottom:1px solid #eee; cursor:pointer; }
+.suggest-item:hover { background:#f0f8ff; }
+body.dark { background:#0a0a0a; color:#e0e0e0; }
+body.dark .container { background:#1a1a1a; }
+body.dark .input { background:#252525; border-color:#444; color:rgb(16, 13, 13); }
+
+/* LOADER */
+.loader-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); z-index:9999; display:flex; align-items:center; justify-content:center; transition:0.5s; }
+.bharat-spinner { width:120px; height:120px; position:relative; animation:rotate 3s linear infinite; }
+.spinner-part { position:absolute; width:100%; height:100%; border-radius:50%; animation:pulse 2s ease-in-out infinite; }
+.saffron { background:#FF9933; clip-path:polygon(0 0,100% 0,100% 33%,0 33%); }
+.white { background:white; clip-path:polygon(0 33%,100% 33%,100% 66%,0 66%); display:flex; align-items:center; justify-content:center; }
+.green { background:#138808; clip-path:polygon(0 66%,100% 66%,100% 100%,0 100%); }
+.ashok-chakra { width:40px; height:40px; background:navy; border-radius:50%; position:relative; animation:chakra 4s linear infinite; }
+.ashok-chakra::before { content:""; position:absolute; top:50%; left:50%; width:60px; height:2px; background:navy; transform:translate(-50%,-50%); }
+.ashok-chakra::after { content:""; position:absolute; top:50%; left:50%; width:2px; height:60px; background:navy; transform:translate(-50%,-50%); }
+.loader-text { position:absolute; bottom:-40px; left:50%; transform:translateX(-50%); color:#f97316; font-weight:bold; font-size:14px; letter-spacing:2px; }
+@keyframes rotate { to { transform:rotate(360deg); } }
+@keyframes pulse { 0%,100% { opacity:0.7; } 50% { opacity:1; } }
+@keyframes chakra { to { transform:rotate(-360deg); } }
+.loader-hidden { opacity:0; pointer-events:none; }
+
+/* ================== 2025 PREMIUM BUTTONS – FULL PRO LOOK ================== */
+.buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin: 30px 10px;
+  padding: 0 10px;
+}
+
+.buttons button {
+  padding: 22px 10px !important;
+  font-size: 1.25rem !important;
+  font-weight: 900 !important;
+  border-radius: 28px !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.3) !important;
+  transition: all 0.4s ease !important;
+  position: relative;
+  overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+/* Hover + Press Effect */
+.buttons button:hover {
+  transform: translateY(-10px) scale(1.05) !important;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.5) !important;
+}
+
+.buttons button:active {
+  transform: translateY(-5px) scale(0.98) !important;
+}
+
+/* Shine Animation */
+.buttons button::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  transition: 0.8s;
+}
+.buttons button:hover::before {
+  left: 100%;
+}
+
+/* Individual Button Colors – Premium Gradient */
+.btn-green      { background: linear-gradient(135deg, #11998e, #38ef7d) !important; }
+.btn-wa         { background: linear-gradient(135deg, #25D366, #128C7E) !important; }
+.btn-blue       { background: linear-gradient(135deg, #26f389, #764ba2) !important; }
+.btn-upi        { background: linear-gradient(135deg, #9c27b0, #e91e63) !important; }
+.btn-stock      { background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important; }
+.btn-upi-manage { background: linear-gradient(135deg, #6a11cb, #2575fc) !important; }
+
+/* Mobile Fix – 1 column */
+@media (max-width: 480px) {
+  .buttons { grid-template-columns: 1fr; gap: 16px; }
+  .buttons button { font-size: 1.3rem !important; padding: 24px 10px !important; }
+}
+
+/* ================== PRINT STYLES – PROFESSIONAL BILL WITH SHOP HEADER ================== */
+@media print {
+  body { 
+    background:white !important; 
+    color:black !important; 
+    padding:0 !important;
+  }
+  
+  /* Hide unnecessary elements during print */
+  .header, .logout-btn, #modeBtn, .buttons, .add-section, .discount, #stockStatus, .info { 
+    display:none !important; 
+  }
+  
+  .container { 
+    max-width:100%; 
+    box-shadow:none; 
+    border:none;
+    padding:20px;
+    margin:0;
+  }
+  
+  /* Shop Header – Update this section as needed */
+  .container::before {
+    content: "BHARAT KIRANA STORE";  /* ← Replace with your shop name */
+    display: block;
+    text-align: center;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #006400;
+    margin-bottom: 15px;
+    border-bottom: 3px double #000;
+    padding-bottom: 10px;
+  }
+  
+  /* Shop Details Footer */
+  .container::after {
+    content: "Mobile: 98765 43210 • Address: 123 Main Road, Your City, TN - 600001 • GSTIN: 33ABCDE1234F1Z5";
+    display: block;
+    text-align: center;
+    font-size: 1.1rem;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px dashed #000;
+  }
+  
+  /* Bill styling */
+  .total { 
+    background:white !important; 
+    border: 3px double #000; 
+    padding:25px;
+  }
+  .total .big { 
+    font-size: 4rem !important; 
+    color:#c62828 !important;
+  }
+  
+  /* Items list better */
+  #list .row {
+    padding:8px 0;
+    border-bottom:1px solid #ccc;
+    font-size:1.1rem;
+  }
+  
+  /* No page break issues */
+  @page { margin: 0.5cm; }
+}
+/* QR Code Generator Styles */
+.page-title {
+  color: #006400;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 2.5rem;
+}
+
+.add-form {
+  background: #f8fff8;
+  padding: 25px;
+  border-radius: 20px;
+  margin: 20px 0;
+  border: 2px solid #4caf50;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);
+}
+
+.add-form .input {
+  width: 100%;
+  padding: 12px 15px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.add-form .input:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+}
+
+.code-type-selector {
+  margin: 20px 0;
+  text-align: center;
+  padding: 15px;
+  background: white;
+  border-radius: 10px;
+}
+
+.radio-label {
+  margin: 0 15px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.radio-label input[type="radio"] {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.btn-green {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.btn-green:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.btn-blue {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin: 10px 5px;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.btn-blue:hover {
+  background-color: #0b7dda;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.btn-stock {
+  background-color: #FF9800;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.btn-stock:hover {
+  background-color: #e68900;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.btn-large {
+  width: 100%;
+  padding: 16px;
+  font-size: 1.2rem;
+  margin-top: 15px;
+}
+
+.code-section {
+  display: none;
+  margin: 40px 0;
+  padding: 30px;
+  text-align: center;
+  background: #f5f5f5;
+  border-radius: 15px;
+  border: 2px solid #e0e0e0;
+  animation: slideIn 0.3s ease-in;
+}
+
+.code-section.show {
+  display: block;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.code-section h3 {
+  color: #006400;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+
+.generated-code-container {
+  margin: 30px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+  display: inline-block;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.button-group {
+  margin-top: 25px;
+  text-align: center;
+}
+
+@media print {
+  .add-form,
+  .button-group,
+  .btn-stock {
+    display: none;
+  }
+  .code-section {
+    background: white;
+    border: none;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+  .page-title {
+    font-size: 1.8rem;
+  }
+  .radio-label {
+    display: block;
+    margin: 10px 0;
+  }
+}
+body {
+  background: url('favicon1.png') no-repeat center center fixed !important; /* Use your logo filename here */
+  background-size: 50% auto; /* Adjust background size as needed */
+  background-position: center 20%; /* Adjust background position for the header image */
+  background-color: #fff8e1; /* fallback color */
+  background-blend-mode: overlay; /* logo light'a blend aagum */
+
+}
+
+/* Dark mode'ku adjust */
+body.dark {
+  background: url('logo193.jpeg') no-repeat center center fixed !important;
+  background-size: 50% auto;
+  background-position: center 20%;
+  background-color: #0a0a0a;
+  background-blend-mode: screen; /* Adjust light blending in dark mode */
+}
+body.dark {
+  background: #121212;
+  color: #e0e0e0;
+}
+
+body.dark .container, body.dark .input, body.dark .btn-green, body.dark .btn-blue {
+  background: #1e1e1e;
+  color: #ffffff;
+  border-color: #444;
+}
+
+body.dark #list .row {
+  background: #252525;
+  border-bottom: 1px solid #444;
+}
+
+body.dark .total p {
+  color: #ffffff;
+}
+
+/* ===== AI Modal & Customer UI Styles ===== */
+.ai-modal-overlay{position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(11,22,39,0.6);display:flex;align-items:center;justify-content:center;z-index:100000}
+.ai-modal-card{width:92%;max-width:1100px;background:#ffffff;border-radius:12px;box-shadow:0 20px 60px rgba(2,6,23,0.12);overflow:hidden;font-family:system-ui,Arial}
+.ai-modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #f0f2f5}
+.ai-modal-header h3{margin:0;font-size:18px;color:#0d47a1}
+.ai-close{background:transparent;border:none;font-size:22px;cursor:pointer;color:#333}
+.ai-modal-body{display:flex;gap:18px;padding:18px}
+.ai-left{flex:1}
+.ai-right{width:360px;padding-left:12px;border-left:1px solid #f3f5f8}
+.ai-controls{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.ai-controls label{font-size:12px;color:#333}
+.ai-controls select,input{padding:8px;border-radius:8px;border:1px solid #e6e9ef}
+.btn-primary{background:#1976d2;color:#fff;padding:8px 12px;border-radius:8px;border:none;margin-left:6px}
+.btn-secondary{background:#fff;border:1px solid #1976d2;color:#1976d2;padding:8px 10px;border-radius:8px;margin-top:8px}
+.btn-outline{background:transparent;border:1px solid #ccc;padding:8px 10px;border-radius:8px;color:#333}
+.ai-chart-wrap{background:#fafbfd;padding:12px;border-radius:8px;border:1px solid #f0f3f7}
+.ai-report{margin-top:12px;max-height:320px;overflow:auto;border-radius:8px;padding:6px}
+.ai-report table{width:100%;border-collapse:collapse}
+.ai-report th, .ai-report td{padding:8px;border-bottom:1px solid #f0f3f7;text-align:left}
+.ai-customer input{width:100%;padding:8px;border-radius:8px;border:1px solid #e6e9ef}
+.ai-customer-result{margin-top:12px;background:#fff;padding:12px;border-radius:8px;border:1px solid #eceff1}
+.ai-cust-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:8px}
+.ai-recent-wrap{max-height:180px;overflow:auto;margin-top:8px}
+.ai-recent-table{width:100%;border-collapse:collapse}
+.ai-recent-table th,.ai-recent-table td{padding:8px;border-bottom:1px solid #f3f6f9;text-align:left}
+.ai-prod-wrap{display:flex;gap:12px;align-items:flex-start;margin-top:8px}
+.ai-prod-list{width:40%;max-height:220px;overflow:auto}
+.ai-prod-table{width:100%;border-collapse:collapse}
+.ai-prod-table th,.ai-prod-table td{padding:8px;border-bottom:1px solid #f3f6f9;text-align:left}
+.ai-cust-error{color:#c62828;padding:8px}
+.ai-cust-empty{padding:8px;color:#666}
+
+@media(max-width:900px){
+  .ai-modal-body{flex-direction:column}
+  .ai-right{width:100%;border-left:none;padding-left:0}
+  .ai-cust-summary{grid-template-columns:1fr}
+  .ai-prod-wrap{flex-direction:column}
+}

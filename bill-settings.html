@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shop Settings - Bharat Billing Pro</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Loader styles are included here for a smoother page load experience -->
+  <style>
+    #bharatLoader {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #fff3e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 9999;
+      transition: opacity 1.2s ease-out;
+      opacity: 1;
+      color: white;
+      font-family: system-ui, sans-serif;
+    }
+
+    #bharatLoader .logo-container {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      margin-bottom: 35px;
+    }
+
+    #bharatLoader img.logo {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 50%;
+      box-shadow: 0 8px 35px rgba(0,0,0,0.4);
+      animation: pulse 2.8s infinite ease-in-out;
+    }
+
+    #bharatLoader h1 {
+      font-size: 50px;
+      margin: 0 0 12px 0;
+      color: #1e6b2d;
+      text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+    }
+
+    #bharatLoader p {
+      font-size: 24px;
+      margin: 8px 0 0 0;
+      opacity: 0.95;
+      font-weight: 500;
+      color: #d84315;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.12); opacity: 0.92; }
+    }
+  </style>
+
+  <!-- favicon, manifest etc. if needed -->
+  <link rel="icon" href="favicon.jpeg" type="image/png" />
+  <link rel="apple-touch-icon" href="logo192.png" />
+  <link rel="manifest" href="manifest.json" />
+</head>
+<body>
+  <script>
+    if (!localStorage.getItem('bharat_logged_in')) { location.href = 'login.html'; }
+  </script>
+
+  <!-- Loader ONLY HERE – head-la irundhadha full-a remove panniten -->
+  <div id="bharatLoader">
+    <div class="logo-container">
+      <img src="favicon.jpeg" alt="Bharat Billing Pro Logo" class="logo">
+    </div>
+    
+    <h1>Bharat Billing Pro</h1>
+      <p>Loading, please wait... 🚀</p>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>Shop Settings ⚙️</h1>
+      <button onclick="location.href='index.html'" class="btn-blue">Back to Billing</button>
+      <button onclick="logout()" class="logout-btn">Logout</button>
+    </div>
+
+    <div class="add-section" style="max-width:600px; margin:40px auto;">
+      <h2 style="text-align:center; color:#28a745;">Shop Details</h2>
+      
+      <input type="text" id="shopName" placeholder="Shop Name *" class="input" />
+      <input type="text" id="shopAddress" placeholder="Full Address *" class="input" />
+      <input type="text" id="shopGST" placeholder="GST Number (optional)" class="input" />
+      <input type="tel" id="shopPhone" placeholder="Contact Number *" class="input" />
+      <input type="email" id="shopEmail" placeholder="Email ID (for feedback)" class="input" />
+      <input type="text" id="counterNo" placeholder="Counter No (e.g., Counter 1)" class="input" value="Main Counter" />
+
+      <button onclick="saveShopDetails()" class="btn-green" style="width:100%; padding:15px; font-size:1.2rem; margin-top:20px;">
+        SAVE SHOP DETAILS 💾
+      </button>
+
+      <p style="text-align:center; margin-top:30px; color:green; font-weight:bold;" id="saveMsg"></p>
+    </div>
+  </div>
+
+  <script>
+    // Your existing shop details script
+    window.addEventListener("load", () => {
+      const details = JSON.parse(localStorage.getItem("bharat_shop_details") || "{}");
+      document.getElementById("shopName").value = details.shopName || "";
+      document.getElementById("shopAddress").value = details.shopAddress || "";
+      document.getElementById("shopGST").value = details.shopGST || "";
+      document.getElementById("shopPhone").value = details.shopPhone || "";
+      document.getElementById("shopEmail").value = details.shopEmail || "";
+      document.getElementById("counterNo").value = details.counterNo || "Main Counter";
+    });
+
+    function saveShopDetails() {
+      const details = {
+        shopName: document.getElementById("shopName").value.trim(),
+        shopAddress: document.getElementById("shopAddress").value.trim(),
+        shopGST: document.getElementById("shopGST").value.trim(),
+        shopPhone: document.getElementById("shopPhone").value.trim(),
+        shopEmail: document.getElementById("shopEmail").value.trim(),
+        counterNo: document.getElementById("counterNo").value.trim() || "Main Counter"
+      };
+
+      if (!details.shopName || !details.shopAddress || !details.shopPhone) {
+        alert("Shop Name, Address & Phone are mandatory.");
+        return;
+      }
+
+      localStorage.setItem("bharat_shop_details", JSON.stringify(details));
+      document.getElementById("saveMsg").innerText = "Shop details saved successfully! 💚";
+      setTimeout(() => document.getElementById("saveMsg").innerText = "", 3000);
+    }
+
+    function logout() { 
+      if(confirm("Logout?")) location.href="login.html"; 
+    }
+
+    // Loader hide script (already present)
+    window.addEventListener("load", () => {
+      const loader = document.getElementById("bharatLoader");
+      if (!loader) return;
+      setTimeout(() => {
+        loader.style.opacity = "0";
+        setTimeout(() => {
+          if (loader && loader.parentNode) {
+            loader.parentNode.removeChild(loader);
+          }
+        }, 1300);
+      }, 1800);
+    });
+
+    setTimeout(() => {
+      const loader = document.getElementById("bharatLoader");
+      if (loader && loader.parentNode) {
+        loader.style.opacity = "0";
+        setTimeout(() => {
+          if (loader.parentNode) loader.parentNode.removeChild(loader);
+        }, 1000);
+      }
+    }, 6000);
+  </script>
+</body>
+</html>

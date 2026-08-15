@@ -1,0 +1,13 @@
+Bharat Billing App/                  ← Folder Name (any name ok)
+│
+├── login.html                       ← Open this first (Seller Login)
+├── index.html                       ← Main Billing Screen (Auto Protected)
+├── stock.html                       ← Stock Management (Protected)
+├── style.css                        ← Full Styling (Beautiful + Mobile Ready)
+└── script.js                        ← All Logic (GST, QR, WhatsApp, Print, Stock)
+
+Extra Bonus (Optional - future use)
+├── bills-list.html                  ← (Coming soon - View old bills)
+└── manifest.json                    ← (For PWA - install as app on phone)
+
+

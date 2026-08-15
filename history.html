@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Customer History - Bharat Billing</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="favicon.jpeg" type="image/png" />
+  <!-- Loader Styles -->
+<style>
+  #bharatLoader {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #fff3e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 9999;
+    transition: opacity 1.2s ease-out;
+    opacity: 1;
+    color: white;
+    font-family: system-ui, sans-serif;
+  }
+
+  #bharatLoader .logo-container {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin-bottom: 35px;
+  }
+
+  #bharatLoader img.logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+    box-shadow: 0 8px 35px rgba(0,0,0,0.4);
+    animation: pulse 2.8s infinite ease-in-out;
+  }
+
+  #bharatLoader h1 {
+    font-size: 50px;
+    margin: 0 0 12px 0;
+    color: #1e6b2d;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+  }
+
+  #bharatLoader p {
+    font-size: 24px;
+    margin: 8px 0 0 0;
+    opacity: 0.95;
+    font-weight: 500;
+    color: #d84315;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.12); opacity: 0.92; }
+  }
+</style>
+</head>
+<body>
+  <script>
+    if (!localStorage.getItem('bharat_logged_in')) { location.href = 'login.html'; }
+  </script>
+  <div id="bharatLoader">
+  <div class="logo-container">
+    <img src="favicon.jpeg" alt="Bharat Billing Pro Logo" class="logo">
+  </div>
+  
+  <h1>Bharat Billing Pro</h1>
+  <p>Loading, please wait... 🚀</p>
+</div>
+  <div class="container">
+    <h1 style="color:#006400; text-align:center;">Customer History</h1>
+    <input type="text" id="search" placeholder="Search by name or phone..." class="input" oninput="filter()" autofocus/>
+
+    <div id="historyList" style="margin-top:20px;"></div>
+
+    <button onclick="history.back()" class="btn-stock" style="margin-top:30px; padding:15px; width:100%;">Back to Billing</button>
+  </div>
+
+  <script>
+    let allBills = JSON.parse(localStorage.getItem("bharat_bills") || "[]");
+
+    function showHistory() {
+      if (allBills.length === 0) {
+        document.getElementById("historyList").innerHTML = "<p style='text-align:center; color:#666; padding:40px;'>No bills saved yet.</p>";
+        return;
+      }
+
+      // Latest first
+      const billsToShow = [...allBills].reverse();
+
+      let html = "";
+      billsToShow.forEach(b => {
+        html += `
+          <div class="stock-item" style="margin:12px 0; padding:18px; border-radius:18px; background:#f8fff8; border:2px solid #e0e0e0; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+            <strong style="color:#006400; font-size:1.4rem;">${b.name || "Walk-in Customer"}</strong>
+            ${b.phone ? `<span style="color:#006400; margin-left:8px;">(${b.phone})</span>` : ""}
+            <br><br>
+            <small style="color:#555;">
+              ${b.date || "Date not saved"}<br>
+                          <strong style="color:#c62828; font-size:1.2rem;">₹${b.total || "0.00"}</strong> • ${b.itemsCount || "0"} items
+            </small>
+                        ${b.items ? `<br><small style="color:#006400;">${(b.items || []).map(it => `${it.name} (${it.qty}×₹${it.price})`).join(' | ')}</small>` : (b.itemsList ? `<br><small style="color:#006400;">${b.itemsList}</small>` : "")}
+          </div>
+        `;
+      });
+
+      document.getElementById("historyList").innerHTML = html;
+    }
+
+    function filter() {
+      let q = document.getElementById("search").value.toLowerCase();
+      let filtered = allBills.filter(b => 
+        (b.name || "").toLowerCase().includes(q) || 
+        (b.phone || "").includes(q)
+      );
+
+      document.getElementById("historyList").innerHTML = filtered.length ? filtered.map(b => `
+        <div class="stock-item" style="margin:12px 0; padding:18px; border-radius:18px; background:#f8fff8;">
+          <strong style="color:#006400;">${b.name}</strong> ${b.phone ? `(${b.phone})` : ""}
+          <br><small>${b.date} • ₹${b.total} • ${b.itemsCount} items</small>
+          ${b.itemsList ? `<br><small style="color:#006400;">${b.itemsList}</small>` : ""}
+        </div>
+      `).join("") : "<p style='text-align:center; color:#999; padding:40px;'>No customer found.</p>";
+    }
+
+    showHistory();
+  </script>
+  <!-- LOADER JS -->
+<script>
+  window.addEventListener("load", () => {
+    const loader = document.getElementById("bharatLoader");
+    if (!loader) return;
+    setTimeout(() => {
+      loader.style.opacity = "0";
+      setTimeout(() => {
+        if (loader && loader.parentNode) {
+          loader.parentNode.removeChild(loader);
+        }
+      }, 1300);
+    }, 1800);
+  });
+
+  setTimeout(() => {
+    const loader = document.getElementById("bharatLoader");
+    if (loader && loader.parentNode) {
+      loader.style.opacity = "0";
+      setTimeout(() => {
+        if (loader.parentNode) loader.parentNode.removeChild(loader);
+      }, 1000);
+    }
+  }, 6000);
+</script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Stock - Bharat Billing Pro</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="favicon.jpeg" type="image/png" />
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <!-- Loader Styles -->
+<style>
+  #bharatLoader {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #fff3e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 9999;
+    transition: opacity 1.2s ease-out;
+    opacity: 1;
+    color: white;
+    font-family: system-ui, sans-serif;
+  }
+
+  #bharatLoader .logo-container {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin-bottom: 35px;
+  }
+
+  #bharatLoader img.logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+    box-shadow: 0 8px 35px rgba(0,0,0,0.4);
+    animation: pulse 2.8s infinite ease-in-out;
+  }
+
+  #bharatLoader h1 {
+    font-size: 50px;
+    margin: 0 0 12px 0;
+    color: #1e6b2d;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+  }
+
+  #bharatLoader p {
+    font-size: 24px;
+    margin: 8px 0 0 0;
+    opacity: 0.95;
+    font-weight: 500;
+    color: #d84315;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.12); opacity: 0.92; }
+  }
+</style>
+</head>
+<body>
+  <div id="bharatLoader">
+  <div class="logo-container">
+    <img src="favicon.jpeg" alt="Bharat Billing Pro Logo" class="logo">
+  </div>
+  
+  <h1>Bharat Billing Pro</h1>
+  <p>Loading, please wait... 🚀</p>
+</div>
+  <div class="container">
+    <h1 style="color:#006400; text-align:center;">Manage Stock</h1>
+
+    <div class="dashboard" style="display:flex; justify-content:space-around; margin:20px 0; padding:15px; background:#e8f5e8; border-radius:15px;">
+      <div class="dash-item">
+        <strong>Total Products</strong><br>
+        <span id="totalPro" style="font-size:1.5rem; color:#006400;">0</span>
+      </div>
+      <div class="dash-item">
+        <strong>Total Stock Value</strong><br>
+        <span id="totalVal" style="font-size:1.5rem; color:#006400;">₹0.00</span>
+      </div>
+    </div>
+
+    <input type="text" id="search" placeholder="Search products..." class="input" oninput="render()" style="font-size:1.2rem; padding:18px;"/>
+
+    <div style="text-align:center; margin:25px 0;">
+      <button onclick="startStockScanner()" class="btn-green" style="padding:20px 40px; font-size:1.5rem; font-weight:900;">
+        SCAN PRODUCT BARCODE
+      </button>
+    </div>
+
+    <div class="add-form" style="background:#f8fff8; padding:20px; border-radius:20px; margin:20px 0; border:2px solid #4caf50;">
+      <input type="text" id="pname" placeholder="Product Name" class="input" required/>
+      <input type="number" id="pstock" placeholder="Stock Quantity" class="input" min="0"/>
+      <input type="number" id="pprice" placeholder="Price ₹" step="0.01" class="input" min="0"/>
+      <input type="number" id="pgst" placeholder="GST %" value="0" class="input" min="0" max="100"/>
+      <input type="text" id="pbarcode" placeholder="Barcode (optional)" class="input"/>
+      <button onclick="addProduct()" class="btn-green" style="width:100%; padding:18px; font-size:1.3rem; margin-top:10px;">
+        + ADD / UPDATE PRODUCT
+      </button>
+      <button onclick="generateOrderList()" class="btn-green" style="width:100%; padding:15px; margin-top:20px;">GENERATE ORDER LIST 📋</button>
+    </div>
+
+    <div id="list" style="margin-top:20px;"></div>
+
+    <button onclick="location.href='index.html'" class="btn-stock" style="width:100%; padding:18px; margin-top:30px; font-size:1.3rem;">
+      Back to Billing
+    </button>
+  </div>
+
+  <div id="stockScannerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:99999;">
+    <div style="position:relative; width:100%; height:100%;">
+      <div id="stock-scanner-video" style="width:100%; height:100%;"></div>
+
+      <button onclick="stopStockScanner()" style="position:absolute; top:20px; right:20px; padding:15px 30px; background:#e53935; color:white; border:none; border-radius:50px; font-size:1.2rem; z-index:100;">
+        CLOSE
+      </button>
+
+      <div style="position:absolute; bottom:60px; left:50%; transform:translateX(-50%); color:white; font-size:1.4rem; background:rgba(0,0,0,0.7); padding:15px 30px; border-radius:20px;">
+        Scan Product Barcode to Add/Update
+      </div>
+    </div>
+  </div>
+
+    <script>
+    let items = [];
+
+    function load() {
+      const saved = localStorage.getItem("bharat_inventory");
+      items = saved ? JSON.parse(saved) : [];
+      updateDash();
+      render();
+    }
+
+    function save() {
+      localStorage.setItem("bharat_inventory", JSON.stringify(items));
+      updateDash();
+    }
+
+    function updateDash() {
+      document.getElementById('totalPro').textContent = items.length;
+      const val = items.reduce((a,b) => a + (b.stock * b.price), 0);
+      document.getElementById('totalVal').textContent = '₹' + val.toFixed(2);
+    }
+
+    function addProduct() {
+      const name = document.getElementById('pname').value.trim();
+      const stock = parseInt(document.getElementById('pstock').value) || 0;
+      const price = parseFloat(document.getElementById('pprice').value) || 0;
+      const gst = parseInt(document.getElementById('pgst').value) || 0;
+      const barcode = document.getElementById('pbarcode').value.trim();
+
+      if (!name) return alert("Product name is mandatory.");
+
+      const i = items.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+      if (i !== -1) items[i] = { name, stock, price, gst, barcode };
+      else items.push({ name, stock, price, gst, barcode });
+
+      save(); render(); clearForm();
+    }
+
+    function clearForm() {
+      ['pname','pstock','pprice','pbarcode'].forEach(id => document.getElementById(id).value='');
+      document.getElementById('pgst').value = 0;
+      document.getElementById('pname').focus();
+    }
+
+    function render() {
+      const q = document.getElementById('search').value.toLowerCase();
+      const f = items.filter(p => p.name.toLowerCase().includes(q));
+      document.getElementById('list').innerHTML = f.map(p => `
+        <div class="stock-item" style="margin:15px 0; padding:18px; background:#fff; border-radius:18px;">
+          <strong>${p.name}</strong><br>
+          Stock: ${p.stock} | ₹${p.price} | GST ${p.gst}%
+          ${p.barcode ? `<br>Barcode: ${p.barcode}` : ``}
+        </div>
+      `).join("") || "<p style='text-align:center;color:#999;'>No products</p>";
+    }
+
+    let stockQr = null;
+
+    function startStockScanner() {
+      document.getElementById("stockScannerModal").style.display = "block";
+
+      stockQr = new Html5Qrcode("stock-scanner-video");
+
+      const config = { 
+        fps: 12, 
+        qrbox: { width: 380, height: 140 },  // Wide rectangle frame
+        aspectRatio: 2.2
+      };
+
+      stockQr.start(
+        { facingMode: "environment" },
+        config,
+        (code) => {
+          const existing = items.find(i => i.barcode === code);
+          if (existing) {
+            document.getElementById('pname').value = existing.name;
+            document.getElementById('pstock').value = existing.stock;
+            document.getElementById('pprice').value = existing.price;
+            document.getElementById('pgst').value = existing.gst;
+            document.getElementById('pbarcode').value = existing.barcode;
+            alert("Product loaded. Update and save.");
+          } else {
+            document.getElementById('pbarcode').value = code;
+            document.getElementById('pname').focus();
+            alert("New barcode scanned ! Name & details fill");
+          }
+          stopStockScanner();
+        },
+        () => {}
+      ).catch(err => {
+        alert("Camera access issue. Please allow permission.");
+        stopStockScanner();
+      });
+    }
+
+    function stopStockScanner() {
+      if (stockQr) {
+        stockQr.stop().then(() => {
+          stockQr.clear();
+          stockQr = null;
+        }).catch(() => {});
+      }
+      document.getElementById("stockScannerModal").style.display = "none";
+    }
+
+    load();
+
+    function generateOrderList() {
+  const low = items.filter(i => (i.stock / i.initialStock) * 100 < 30); // 30% kku keezha
+  if (low.length === 0) return alert("All stock good in number!");
+
+  let list = "LOW STOCK ORDER LIST\n\n";
+  low.forEach(i => {
+    const need = i.initialStock - i.stock;
+    list += `${i.name} - Current: ${i.stock}, Need: ${need}\n`;
+  });
+
+  // Copy to clipboard
+  navigator.clipboard.writeText(list).then(() => {
+    alert("Order list copied. Paste it into WhatsApp to send to your supplier.");
+  });
+}
+  </script>
+  <!-- LOADER JS -->
+<script>
+  window.addEventListener("load", () => {
+    const loader = document.getElementById("bharatLoader");
+    if (!loader) return;
+    setTimeout(() => {
+      loader.style.opacity = "0";
+      setTimeout(() => {
+        if (loader && loader.parentNode) {
+          loader.parentNode.removeChild(loader);
+        }
+      }, 1300);
+    }, 1800);
+  });
+
+  setTimeout(() => {
+    const loader = document.getElementById("bharatLoader");
+    if (loader && loader.parentNode) {
+      loader.style.opacity = "0";
+      setTimeout(() => {
+        if (loader.parentNode) loader.parentNode.removeChild(loader);
+      }, 1000);
+    }
+  }, 6000);
+</script>
+</body>
+</html>

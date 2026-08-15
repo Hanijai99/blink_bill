@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage UPI - Bharat Billing</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .manage-container { padding: 20px; max-width: 600px; margin: 0 auto; }
+    .bank-list { margin: 20px 0; }
+    .bank-item { padding: 12px; border: 1px solid #ddd; margin-bottom: 10px; border-radius: 8px; position: relative; }
+    .bank-item.active { border: 2px solid #28a745; background: #f0fff4; }
+    .bank-item .active-badge { display:inline-block; background:#28a745; color:#fff; font-size:12px; font-weight:bold; padding:3px 10px; border-radius:20px; margin-bottom:6px; }
+    .bank-item .btn-row { margin-top: 10px; display:flex; gap:8px; }
+    .bank-item button { border: none; padding: 8px 14px; border-radius: 6px; font-weight:bold; cursor:pointer; }
+    .bank-item .set-active-btn { background:#28a745; color:white; }
+    .bank-item .set-active-btn:disabled { background:#9e9e9e; cursor:default; }
+    .bank-item .delete-btn { background:#e53935; color:white; }
+    #addForm { margin-top: 20px; }
+    input { margin-bottom: 10px; width: 100%; padding: 10px; box-sizing: border-box; }
+  </style>
+   <!-- ⭐ YEVALO IMPORTANT - IDHU 5 LINE FULL PROJECT KU WORK AAGUM ⭐ -->
+  <link rel="icon" href="favicon.jpeg" type="image/png" />
+  <link rel="shortcut icon" href="favicon.jpeg" type="image/png" />
+  <link rel="apple-touch-icon" href="logo192.png" />
+  <link rel="manifest" href="manifest.json" />
+  <!-- Loader Styles -->
+<style>
+  #bharatLoader {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #fff3e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 9999;
+    transition: opacity 1.2s ease-out;
+    opacity: 1;
+    color: white;
+    font-family: system-ui, sans-serif;
+  }
+
+  #bharatLoader .logo-container {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin-bottom: 35px;
+  }
+
+  #bharatLoader img.logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+    box-shadow: 0 8px 35px rgba(0,0,0,0.4);
+    animation: pulse 2.8s infinite ease-in-out;
+  }
+
+  #bharatLoader h1 {
+    font-size: 50px;
+    margin: 0 0 12px 0;
+    color: #1e6b2d;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+  }
+
+  #bharatLoader p {
+    font-size: 24px;
+    margin: 8px 0 0 0;
+    opacity: 0.95;
+    font-weight: 500;
+    color: #d84315;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.12); opacity: 0.92; }
+  }
+</style>
+</head>
+<body>
+  <script>
+    if (!localStorage.getItem('bharat_logged_in')) { location.href = 'login.html'; }
+  </script>
+  <div id="bharatLoader">
+  <div class="logo-container">
+    <img src="favicon.jpeg" alt="Bharat Billing Pro Logo" class="logo">
+  </div>
+  
+  <h1>Bharat Billing Pro</h1>
+  <p>Loading, please wait... 🚀</p>
+</div>
+  <div class="manage-container">
+    <h1>Manage UPI Banks</h1>
+    <p>Add banks and choose which one customers should pay to. Change it anytime.</p>
+
+    <div id="activeSummary" style="margin:15px 0; padding:14px; background:#e8f5e9; border-radius:10px; font-weight:bold; color:#1b5e20; text-align:center;"></div>
+
+    <div class="bank-list" id="bankList"></div>
+    
+    <div id="addForm">
+      <input type="text" id="bankName" placeholder="Bank Name (e.g., SBI)" />
+      <input type="text" id="upiId" placeholder="UPI ID (e.g., yourname@oksbi)" />
+      <input type="text" id="ownerName" placeholder="Owner Name (e.g., Bharat Store)" />
+      <input type="file" id="qrFile" accept="image/*" />
+      <button onclick="addBank()" class="btn-green">Add Bank</button>
+    </div>
+    
+    <!-- Replace the old back button with this one -->
+<button onclick="window.location.href='index.html'" 
+        style="margin-top:20px; padding:12px 20px; background:#00b248; color:white; border:none; border-radius:8px; font-size:16px; font-weight:bold;">
+  ← Back to Billing
+</button>
+
+  <script>
+    let banks = JSON.parse(localStorage.getItem("upiBanks")) || [];
+    // activeUpiIndex = index of the bank that customers should currently pay to.
+    // Stored separately so index survives renders; validated against banks.length below.
+    let activeIndex = parseInt(localStorage.getItem("activeUpiIndex"), 10);
+    if (isNaN(activeIndex) || activeIndex < 0 || activeIndex >= banks.length) {
+      activeIndex = banks.length > 0 ? 0 : -1;
+      persistActiveIndex();
+    }
+
+    function persistActiveIndex() {
+      localStorage.setItem("activeUpiIndex", activeIndex);
+    }
+
+    function renderBanks() {
+      let html = "";
+      banks.forEach((bank, i) => {
+        const isActive = i === activeIndex;
+        html += `<div class="bank-item ${isActive ? 'active' : ''}">
+          ${isActive ? '<span class="active-badge">✓ ACTIVE — Customers pay here</span><br>' : ''}
+          <strong>${bank.bankName}</strong><br>
+          UPI: ${bank.upiId}<br>
+          Name: ${bank.ownerName}<br>
+          QR: ${bank.qrImage ? 'Set' : 'Not Set'}
+          <div class="btn-row">
+            <button class="set-active-btn" onclick="setActiveBank(${i})" ${isActive ? 'disabled' : ''}>
+              ${isActive ? 'Active' : 'Set as Active'}
+            </button>
+            <button class="delete-btn" onclick="deleteBank(${i})">Delete</button>
+          </div>
+        </div>`;
+      });
+      document.getElementById("bankList").innerHTML = html || "<p>No banks added yet.</p>";
+
+      const summaryEl = document.getElementById("activeSummary");
+      if (activeIndex >= 0 && banks[activeIndex]) {
+        const b = banks[activeIndex];
+        summaryEl.innerText = `Customers currently pay to: ${b.bankName} (${b.upiId})`;
+      } else {
+        summaryEl.innerText = "No active bank selected yet — add a bank and set it active.";
+      }
+    }
+
+    function setActiveBank(index) {
+      activeIndex = index;
+      persistActiveIndex();
+      renderBanks();
+    }
+
+    function addBank() {
+      let bankName = document.getElementById("bankName").value.trim();
+      let upiId = document.getElementById("upiId").value.trim();
+      let ownerName = document.getElementById("ownerName").value.trim();
+      let qrFile = document.getElementById("qrFile").files[0];
+      
+      if (!bankName || !upiId || !ownerName) {
+        alert("Please complete all bank details before saving.");
+        return;
+      }
+      
+      let bank = { bankName, upiId, ownerName, qrImage: null };
+      
+      if (qrFile) {
+        let reader = new FileReader();
+        reader.onload = () => {
+          bank.qrImage = reader.result;
+          saveAndRender(bank);
+        };
+        reader.readAsDataURL(qrFile);
+      } else {
+        saveAndRender(bank);
+      }
+    }
+    
+    function saveAndRender(bank) {
+      banks.push(bank);
+      localStorage.setItem("upiBanks", JSON.stringify(banks));
+      // First bank added automatically becomes active so UPI PAY works immediately.
+      if (activeIndex === -1) {
+        activeIndex = banks.length - 1;
+        persistActiveIndex();
+      }
+      renderBanks();
+      clearForm();
+    }
+    
+    function clearForm() {
+      document.getElementById("bankName").value = "";
+      document.getElementById("upiId").value = "";
+      document.getElementById("ownerName").value = "";
+      document.getElementById("qrFile").value = "";
+    }
+    
+    function deleteBank(index) {
+      if (confirm("Delete this bank?")) {
+        banks.splice(index, 1);
+        localStorage.setItem("upiBanks", JSON.stringify(banks));
+
+        // Fix up activeIndex after deletion
+        if (banks.length === 0) {
+          activeIndex = -1;
+        } else if (index === activeIndex) {
+          activeIndex = 0; // deleted the active one → fall back to first bank
+        } else if (index < activeIndex) {
+          activeIndex -= 1; // shift left since an earlier item was removed
+        }
+        persistActiveIndex();
+        renderBanks();
+      }
+    }
+    
+    renderBanks();
+  </script>
+  <!-- LOADER JS -->
+<script>
+  window.addEventListener("load", () => {
+    const loader = document.getElementById("bharatLoader");
+    if (!loader) return;
+    setTimeout(() => {
+      loader.style.opacity = "0";
+      setTimeout(() => {
+        if (loader && loader.parentNode) {
+          loader.parentNode.removeChild(loader);
+        }
+      }, 1300);
+    }, 1800);
+  });
+
+  setTimeout(() => {
+    const loader = document.getElementById("bharatLoader");
+    if (loader && loader.parentNode) {
+      loader.style.opacity = "0";
+      setTimeout(() => {
+        if (loader.parentNode) loader.parentNode.removeChild(loader);
+      }, 1000);
+    }
+  }, 6000);
+</script>
+</body>
+</html>

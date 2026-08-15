@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bharat Billing Dashboard</title>
+  <link rel="stylesheet" href="style.css" /> <!-- Use shared style.css -->
+  <style>
+    .dashboard { padding: 20px; }
+    .section { margin: 30px 0; padding: 20px; background: #f9f9f9; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .section h2 { color: #28a745; }
+    .list { list-style: none; padding: 0; }
+    .list li { padding: 8px; border-bottom: 1px solid #ddd; }
+    .chart { width: 100%; max-width: 600px; margin: 20px auto; }
+    #salesChart { height: 300px; }
+  </style>
+  <!-- Loader Styles -->
+<style>
+  #bharatLoader {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #fff3e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 9999;
+    transition: opacity 1.2s ease-out;
+    opacity: 1;
+    color: white;
+    font-family: system-ui, sans-serif;
+  }
+
+  #bharatLoader .logo-container {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin-bottom: 35px;
+  }
+
+  #bharatLoader img.logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+    box-shadow: 0 8px 35px rgba(0,0,0,0.4);
+    animation: pulse 2.8s infinite ease-in-out;
+  }
+
+  #bharatLoader h1 {
+    font-size: 50px;
+    margin: 0 0 12px 0;
+    color: #1e6b2d;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+  }
+
+  #bharatLoader p {
+    font-size: 24px;
+    margin: 8px 0 0 0;
+    opacity: 0.95;
+    font-weight: 500;
+    color: #d84315;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.12); opacity: 0.92; }
+  }
+</style>
+</head>
+<body>
+  <script>
+    if (!localStorage.getItem('bharat_logged_in')) { location.href = 'login.html'; }
+  </script>
+  <div id="bharatLoader">
+  <div class="logo-container">
+    <img src="favicon.jpeg" alt="Bharat Billing Pro Logo" class="logo">
+  </div>
+  
+  <h1>Bharat Billing Pro</h1>
+  <p>Loading, please wait... 🚀</p>
+</div>
+  <div class="container dashboard">
+    <div class="header">
+      <h1>BLINK BILL Dashboard 🚀</h1>
+      <button onclick="location.href='index.html'" class="btn-blue">Back to Billing</button>
+      <button id="modeBtn" onclick="toggleMode()">Dark Mode</button>
+      <button onclick="logout()" class="logout-btn">Logout</button>
+    </div>
+
+    <div class="section">
+      <h2>Stock Status 📦</h2>
+      <div id="lowStockList"></div>
+      <div id="midStockList"></div>
+    </div>
+
+    <div class="section">
+      <h2>Today Stats 📊</h2>
+      <div id="todayStats"></div>
+    </div>
+
+    <div class="section">
+      <h2>Weekly Stats & Suggestions 💡</h2>
+      <div id="weeklyStats"></div>
+      <canvas id="salesChart" class="chart"></canvas>
+    </div>
+
+    <div class="section">
+      <h2>Inventory Prediction (Next 7 Days) 🔮</h2>
+      <div id="inventoryPrediction"></div>
+    </div>
+
+    <div class="section">
+      <h2>Customer Insights 👥</h2>
+      <div id="customerInsights"></div>
+    </div>
+
+    <div class="section">
+      <h2>Price Suggestions 💰</h2>
+      <div id="priceSuggestions"></div>
+    </div>
+
+    <div class="section">
+      <h2>Security Alerts ⚠️</h2>
+      <div id="securityAlerts"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js for visuals -->
+  <script src="dashboard.js"></script> <!-- New JS file -->
+  <script src="analytics.js"></script> <!-- AI heuristics module -->
+  <!-- Small quick access: AI analyze button already created by analytics.js but ensure area exists -->
+  <div id="aiControlsPlaceholder" style="position:fixed;right:12px;bottom:70px;z-index:99997;"></div>
+  <!-- LOADER JS -->
+<script>
+  window.addEventListener("load", () => {
+    const loader = document.getElementById("bharatLoader");
+    if (!loader) return;
+    setTimeout(() => {
+      loader.style.opacity = "0";
+      setTimeout(() => {
+        if (loader && loader.parentNode) {
+          loader.parentNode.removeChild(loader);
+        }
+      }, 1300);
+    }, 1800);
+  });
+
+  setTimeout(() => {
+    const loader = document.getElementById("bharatLoader");
+    if (loader && loader.parentNode) {
+      loader.style.opacity = "0";
+      setTimeout(() => {
+        if (loader.parentNode) loader.parentNode.removeChild(loader);
+      }, 1000);
+    }
+  }, 6000);
+</script>
+
+</body>
+</html>

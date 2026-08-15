@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  
+  <title>BLINK BILL</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="favicon.jpeg" type="image/png" />
+  <link rel="shortcut icon" href="favicon.jpeg" />
+  <link rel="apple-touch-icon" href="logo192.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- ✅ HTML5-QRCODE ONLY -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Library load check -->
+  <script>
+    window.addEventListener("load", function() {
+      if (typeof Html5Qrcode === "undefined") {
+        alert("QR scanner loading issue! Check your internet connection or refresh the page.");
+      }
+    });
+  </script>
+
+  <!-- UPDATED LOADER STYLES -->
+  <style>
+    #bharatLoader {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #fff3e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 9999;
+      transition: opacity 1.2s ease-out;
+      opacity: 1;
+      color: rgb(28, 21, 21);
+      font-family: system-ui, sans-serif;
+    }
+
+    #bharatLoader .logo-container {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      margin-bottom: 35px;
+    }
+
+    #bharatLoader img.logo {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 50%;
+      box-shadow: 0 8px 35px rgba(0,0,0,0.4);
+      animation: pulse 2.8s infinite ease-in-out;
+    }
+
+    #bharatLoader h1 {
+      font-size: 50px;
+      margin: 0 0 12px 0;
+      color: #1e6b2d;
+      text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+    }
+
+    #bharatLoader p {
+      font-size: 24px;
+      margin: 8px 0 0 0;
+      opacity: 0.95;
+      font-weight: 500;
+      color: #d84315;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.12);
+        opacity: 0.92;
+      }
+    }
+
+    body {
+      background-color: #fff3e0;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // Basic client-side protection: redirect to login if not authenticated
+    if (!localStorage.getItem('bharat_logged_in')) {
+      location.href = 'login.html';
+    }
+  </script>
+
+  <!-- UPDATED LOADER with LOGO -->
+  <div id="bharatLoader">
+    <div class="logo-container">
+      <div class="ring"></div>
+      <img src="favicon.jpeg" alt="BLINK BILL Logo" class="logo">
+    </div>
+    
+    <h1>BLINK BILL</h1>
+    <p>Loading, please wait a moment... 🚀</p>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>BLINK BILL</h1>
+      <button id="modeBtn" onclick="toggleMode()">Dark Mode</button>
+      <button onclick="logout()" class="logout-btn">Logout</button>
+    </div>
+
+    <div class="info">Logged in as: <strong id="owner">Owner</strong></div>
+
+    <input type="text" id="cname" placeholder="Customer Name" class="input"/>
+    <input type="tel" id="cphone" placeholder="Phone (optional)" class="input"/>
+
+    <div class="discount">
+      <input type="number" id="discAmt" placeholder="Discount ₹" class="input" oninput="calc()"/>
+      <input type="number" id="discPer" placeholder="Discount %" class="input" oninput="calc()"/>
+    </div>
+
+    <div id="stockStatus" style="margin:20px 0; padding:18px; background:#fff3e0; border-radius:20px; text-align:center; font-weight:bold; font-size:1.2rem; color:#d84315;">
+      Checking stock...
+    </div>
+
+    <div class="add-section">
+      <h2>Add Item</h2>
+      <input type="text" id="search" placeholder="Type product name..." class="input" oninput="showSuggest()" autofocus/>
+      <div id="suggest" class="suggestions"></div>
+
+      <div class="grid">
+        <input type="text" id="name" placeholder="Item Name" class="input"/>
+        <input type="number" id="qty" value="1" class="input"/>
+        <input type="number" id="price" placeholder="Price" step="0.01" class="input"/>
+        <input type="number" id="gst" placeholder="GST%" class="input" readonly/>
+      </div>
+      <button onclick="add()" class="btn-green">Add Item</button>
+    </div>
+
+    <!-- SCAN BUTTON -->
+    <div style="text-align:center; margin:40px 0;">
+      <button onclick="startScanner()" class="btn-green" style="padding:30px 60px; font-size:2rem; font-weight:900; border-radius:20px; box-shadow:0 8px 20px rgba(0,0,0,0.2);">
+        TAP TO SCAN ITEMS
+      </button>
+    </div>
+
+    <!-- SCANNER MODAL -->
+    <div id="scannerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:99999;">
+      <div style="position:relative; width:100%; height:100%;">
+        <div id="scanner-reader" style="width:100%; height:100%;"></div>
+        
+        <button onclick="stopScanner()" style="position:absolute; top:15px; right:15px; padding:12px 25px; background:#e53935; color:white; border:none; border-radius:50px; font-weight:bold; z-index:100;">
+          CLOSE
+        </button>
+        
+        <div style="position:absolute; bottom:50px; left:50%; transform:translateX(-50%); color:white; font-size:1.3rem; background:rgba(0,0,0,0.7); padding:10px 20px; border-radius:15px;">
+          Place barcode inside the frame
+        </div>
+      </div>
+    </div>
+
+    <div id="list"></div>
+
+    <div class="total">
+      <p>Subtotal: ₹<span id="sub">0.00</span></p>
+      <p>Discount: ₹<span id="disc">0.00</span></p>
+      <p>GST: ₹<span id="gstt">0.00</span></p>
+      <p class="big">Final: ₹<span id="final">0.00</span></p>
+    </div>
+
+    <!-- OWNER BUTTONS -->
+    <div class="buttons">
+      <button onclick="save()" class="btn-green">SAVE BILL</button>
+      <button onclick="wa()" class="btn-wa">WHATSAPP</button>
+      <button onclick="print()" class="btn-blue">PRINT</button>
+      <button onclick="upi()" class="btn-upi">UPI PAY</button>
+      <button onclick="uploadQR()" class="btn-stock">SET UPI QR</button>
+      <button onclick="location.href='stock.html'" class="btn-stock">MANAGE STOCK</button>
+
+      <button onclick="location.href='qr-generation.html'" class="btn-stock" style="background:#6a1b9a; margin-top:8px;">ADD PRODUCT & GENERATE QR</button>
+
+      <button onclick="location.href='upi_manage.html'" class="btn-upi-manage">UPI MANAGE</button>
+      <button onclick="location.href='history.html'" class="btn-blue">CUSTOMER HISTORY</button>
+      <button onclick="showTodayStats()" class="btn-green" style="background:#ff6d00; margin-top:8px; font-weight:bold;">TODAY STATS 📊</button>
+      <button onclick="location.href='dashboard.html'"style="background:#ff6d00; margin-top:8px; font-weight:bold;">DASHBOARD</button>
+      <button onclick="exportData()" class="btn-stock" style="background:#9c27b0; margin-top:8px; font-weight:bold;">BACKUP DATA 💾</button>
+      <button onclick="importData()" class="btn-stock" style="background:#455a64; margin-top:8px; font-weight:bold;">RESTORE DATA ⤴️</button>
+      <button onclick="location.href='bill-settings.html'" class="btn-stock" style="background:#6c757d; margin-top:8px; font-weight:bold;">SHOP SETTINGS ⚙️</button>
+      <button onclick="dailyClose()" class="btn-green" style="background:#d32f2f; margin-top:8px; font-weight:bold;">CLOSE DAY 📊</button>
+      <button onclick="location.href='expenses.html'" class="btn-stock" style="background:#ff5722; margin-top:8px;">EXPENSES 💸</button>
+    </div>
+    <a href="/privacy-policy.html" target="_blank" rel="noopener noreferrer">
+  Privacy Policy
+</a>
+  </div>
+
+  <!-- LOADER JS -->
+  <script>
+    window.addEventListener("load", () => {
+      const loader = document.getElementById("bharatLoader");
+      if (!loader) return;
+      setTimeout(() => {
+        loader.style.opacity = "0";
+        setTimeout(() => {
+          if (loader && loader.parentNode) {
+            loader.parentNode.removeChild(loader);
+          }
+        }, 1300);
+      }, 1800);
+    });
+
+    setTimeout(() => {
+      const loader = document.getElementById("bharatLoader");
+      if (loader && loader.parentNode) {
+        loader.style.opacity = "0";
+        setTimeout(() => {
+          if (loader.parentNode) loader.parentNode.removeChild(loader);
+        }, 1000);
+      }
+    }, 6000);
+  </script>
+
+  <!-- Scanner script -->
+  <script>
+    let html5QrCode = null;
+
+    function startScanner() {
+      document.getElementById('scannerModal').style.display = 'block';
+
+      html5QrCode = new Html5Qrcode("scanner-reader");
+
+      const config = { 
+        fps: 12, 
+        qrbox: { width: 380, height: 140 },
+        aspectRatio: 2.2,
+        disableFlip: false
+      };
+
+      html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        (decodedText, decodedResult) => {
+          const barcode = decodedText.trim();
+          const product = items.find(i => i.barcode === barcode);
+          
+          if (!product) {
+            alert("Product not found.\nBarcode: " + barcode);
+          } else {
+            document.getElementById("name").value = product.name;
+            document.getElementById("price").value = product.price;
+            document.getElementById("gst").value = product.gst;
+            document.getElementById("qty").value = 1;
+            add();  // Auto add to cart
+            alert(`Scanned & added: ${product.name} ✅`);
+          }
+
+          const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3');
+          audio.play().catch(() => {});
+
+          html5QrCode.stop();
+          stopScanner();
+        },
+        (error) => {
+          // Silent
+        }
+      ).catch((err) => {
+        alert("Camera access issue! Please allow permission or refresh the page.");
+        stopScanner();
+      });
+    }
+
+    function stopScanner() {
+      if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+          html5QrCode = null;
+        }).catch(() => {});
+      }
+      document.getElementById('scannerModal').style.display = 'none';
+    }
+  </script>
+
+  <script src="script.js"></script>
+</body>
+</html>
