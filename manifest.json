@@ -13,7 +13,7 @@
   "screenshots": [
     { "src": "screenshot-desktop2.png", "sizes": "1280x800", "type": "image/png" },
     { "src": "screenshot-mobile1.png", "sizes": "750x1334", "type": "image/png" },
-    { "src": "screenshot-mobile2.png", "sizes": " 745x704.", "type": "image/png" }
+    { "src": "screenshot-mobile2.png", "sizes": " 745x704", "type": "image/png" }
   ],
 "categories": ["business", "finance", "productivity"]
 
