@@ -61,6 +61,33 @@
     0%, 100% { transform: scale(1); opacity: 1; }
     50% { transform: scale(1.12); opacity: 0.92; }
   }
+
+  /* Password show/hide toggle styles */
+  .password-wrapper {
+    position: relative;
+    width: 100%;
+  }
+
+  .password-wrapper input {
+    width: 100%;
+    padding-right: 45px;
+    box-sizing: border-box;
+  }
+
+  .toggle-eye {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 20px;
+    user-select: none;
+    opacity: 0.6;
+  }
+
+  .toggle-eye:hover {
+    opacity: 1;
+  }
 </style>
 </head>
 <body class="login-body">
@@ -78,8 +105,17 @@
 
     <div id="loginForm">
       <input type="text" id="username" placeholder="Username" class="input" autocomplete="off"/>
-      <input type="password" id="password" placeholder="Password" class="input" />
-      <input type="password" id="pin" placeholder="OR Enter PIN (optional)" class="input" />
+
+      <div class="password-wrapper">
+        <input type="password" id="password" placeholder="Password" class="input" />
+        <span class="toggle-eye" onclick="togglePassword('password', this)">👁️</span>
+      </div>
+
+      <div class="password-wrapper">
+        <input type="password" id="pin" placeholder="OR Enter PIN (optional)" class="input" />
+        <span class="toggle-eye" onclick="togglePassword('pin', this)">👁️</span>
+      </div>
+
       <button onclick="login()" class="btn btn-green big" id="loginBtn">Login</button>
       <button onclick="showRegister()" class="btn btn-blue big">Register New Seller</button>
       <button onclick="showRecover()" class="btn" style="background:#ff9800;">Forgot?</button>
@@ -88,8 +124,17 @@
     <div id="registerForm" style="display:none;">
       <h3>Create New Seller</h3>
       <input type="text" id="regUser" placeholder="Username" class="input"/>
-      <input type="password" id="regPass" placeholder="Password" class="input"/>
-      <input type="password" id="regPin" placeholder="Set 4-6 digit PIN (optional)" class="input"/>
+
+      <div class="password-wrapper">
+        <input type="password" id="regPass" placeholder="Password" class="input"/>
+        <span class="toggle-eye" onclick="togglePassword('regPass', this)">👁️</span>
+      </div>
+
+      <div class="password-wrapper">
+        <input type="password" id="regPin" placeholder="Set 4-6 digit PIN (optional)" class="input"/>
+        <span class="toggle-eye" onclick="togglePassword('regPin', this)">👁️</span>
+      </div>
+
       <input type="text" id="regShop" placeholder="Shop Name" class="input"/>
       <input type="text" id="regAddr" placeholder="Address" class="input"/>
       <input type="tel" id="regMobile" placeholder="Mobile Number" class="input"/>
@@ -131,7 +176,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Make Firestore functions available to the regular <script> below
     window._db = db;
     window._doc = doc;
     window._getDoc = getDoc;
@@ -148,13 +192,24 @@
     function showRegister(){ document.getElementById('loginForm').style.display='none'; document.getElementById('registerForm').style.display='block'; }
     function showRecover(){ document.getElementById('loginForm').style.display='none'; document.getElementById('recoverForm').style.display='block'; }
 
+    // Toggle password visibility
+    function togglePassword(inputId, eyeEl) {
+      const input = document.getElementById(inputId);
+      if (input.type === "password") {
+        input.type = "text";
+        eyeEl.textContent = "🙈";
+      } else {
+        input.type = "password";
+        eyeEl.textContent = "👁️";
+      }
+    }
+
     async function hashPass(pass) {
       const enc = new TextEncoder();
       const buf = await crypto.subtle.digest('SHA-256', enc.encode(pass));
       return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
     }
 
-    // Wait until Firebase script above has finished loading before allowing use
     function waitForFirebase() {
       return new Promise((resolve) => {
         if (window._firebaseReady) return resolve();
