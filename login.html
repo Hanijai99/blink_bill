@@ -80,7 +80,7 @@
       <input type="text" id="username" placeholder="Username" class="input" autocomplete="off"/>
       <input type="password" id="password" placeholder="Password" class="input" />
       <input type="password" id="pin" placeholder="OR Enter PIN (optional)" class="input" />
-      <button onclick="login()" class="btn btn-green big">Login</button>
+      <button onclick="login()" class="btn btn-green big" id="loginBtn">Login</button>
       <button onclick="showRegister()" class="btn btn-blue big">Register New Seller</button>
       <button onclick="showRecover()" class="btn" style="background:#ff9800;">Forgot?</button>
     </div>
@@ -93,17 +93,55 @@
       <input type="text" id="regShop" placeholder="Shop Name" class="input"/>
       <input type="text" id="regAddr" placeholder="Address" class="input"/>
       <input type="tel" id="regMobile" placeholder="Mobile Number" class="input"/>
-      <button onclick="register()" class="btn btn-green big">Create Account</button>
+      <button onclick="register()" class="btn btn-green big" id="registerBtn">Create Account</button>
       <button onclick="backToLogin()" class="btn btn-red">Back</button>
     </div>
 
     <div id="recoverForm" style="display:none;">
       <h3>Recover Account</h3>
       <input type="tel" id="recoverMobile" placeholder="Mobile Number" class="input"/>
-      <button onclick="recover()" class="btn btn-green big">Recover</button>
+      <button onclick="recover()" class="btn btn-green big" id="recoverBtn">Recover</button>
       <button onclick="backToLogin()" class="btn btn-red">Back</button>
     </div>
   </div>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      collection,
+      query,
+      where,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsU2e8EPlOEwAE-jOXhwHbF7RXnX_MecI",
+      authDomain: "blink-bill-version1.firebaseapp.com",
+      projectId: "blink-bill-version1",
+      storageBucket: "blink-bill-version1.firebasestorage.app",
+      messagingSenderId: "699722725956",
+      appId: "1:699722725956:web:4711ca2cf4f6eca4e59a11"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Make Firestore functions available to the regular <script> below
+    window._db = db;
+    window._doc = doc;
+    window._getDoc = getDoc;
+    window._setDoc = setDoc;
+    window._collection = collection;
+    window._query = query;
+    window._where = where;
+    window._getDocs = getDocs;
+    window._firebaseReady = true;
+  </script>
 
   <script>
     function backToLogin(){ document.getElementById('loginForm').style.display='block'; document.getElementById('registerForm').style.display='none'; document.getElementById('recoverForm').style.display='none'; }
@@ -116,41 +154,130 @@
       return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
     }
 
+    // Wait until Firebase script above has finished loading before allowing use
+    function waitForFirebase() {
+      return new Promise((resolve) => {
+        if (window._firebaseReady) return resolve();
+        const check = setInterval(() => {
+          if (window._firebaseReady) {
+            clearInterval(check);
+            resolve();
+          }
+        }, 50);
+      });
+    }
+
     async function register(){
-      let u=document.getElementById('regUser').value.trim(), p=document.getElementById('regPass').value, pin=document.getElementById('regPin').value.trim(), s=document.getElementById('regShop').value.trim(), m=document.getElementById('regMobile').value.trim();
+      let u=document.getElementById('regUser').value.trim(), p=document.getElementById('regPass').value, pin=document.getElementById('regPin').value.trim(), s=document.getElementById('regShop').value.trim(), addr=document.getElementById('regAddr').value.trim(), m=document.getElementById('regMobile').value.trim();
       if(!u||!p||!s||!m) return alert("All fields mandatory!");
-      let users=JSON.parse(localStorage.getItem('bharat_users')||'[]');
-      if(users.find(x=>x.user===u)) return alert("Username taken!");
-      const passHash = await hashPass(p);
-      const pinHash = pin ? await hashPass(pin) : null;
-      users.push({user:u,passHash:passHash,pinHash:pinHash,shop:{name:s,mobile:m}});
-      localStorage.setItem('bharat_users',JSON.stringify(users));
-      alert("Account created! Login now"); backToLogin();
+
+      const btn = document.getElementById('registerBtn');
+      btn.disabled = true; btn.textContent = "Creating...";
+
+      try {
+        await waitForFirebase();
+        const userRef = window._doc(window._db, "sellers", u);
+        const existing = await window._getDoc(userRef);
+        if (existing.exists()) {
+          alert("Username taken!");
+          return;
+        }
+
+        const passHash = await hashPass(p);
+        const pinHash = pin ? await hashPass(pin) : null;
+
+        await window._setDoc(userRef, {
+          user: u,
+          passHash: passHash,
+          pinHash: pinHash,
+          shop: { name: s, address: addr, mobile: m },
+          createdAt: new Date().toISOString()
+        });
+
+        alert("Account created! Login now");
+        backToLogin();
+      } catch (err) {
+        alert("Error creating account: " + err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = "Create Account";
+      }
     }
 
     async function login(){
       let u=document.getElementById('username').value.trim(), p=document.getElementById('password').value, pin=document.getElementById('pin').value.trim();
-      let users=JSON.parse(localStorage.getItem('bharat_users')||'[]');
-      if(pin){
-        const pinHash = await hashPass(pin);
-        let found = users.find(x=>x.user===u && x.pinHash===pinHash);
-        if(found){ localStorage.setItem("bharat_logged_in",u); localStorage.setItem("owner",u); location.href="index.html"; return; }
-        else return alert("Wrong PIN or username!");
+      if(!u) return alert("Enter username!");
+
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = true; btn.textContent = "Logging in...";
+
+      try {
+        await waitForFirebase();
+        const userRef = window._doc(window._db, "sellers", u);
+        const snap = await window._getDoc(userRef);
+
+        if (!snap.exists()) {
+          alert("Wrong credentials!");
+          return;
+        }
+        const data = snap.data();
+
+        if (pin) {
+          const pinHash = await hashPass(pin);
+          if (data.pinHash === pinHash) {
+            localStorage.setItem("bharat_logged_in", u);
+            localStorage.setItem("owner", u);
+            location.href = "index.html";
+            return;
+          } else {
+            alert("Wrong PIN or username!");
+            return;
+          }
+        }
+
+        const passHash = await hashPass(p);
+        if (data.passHash === passHash) {
+          localStorage.setItem("bharat_logged_in", u);
+          localStorage.setItem("owner", u);
+          location.href = "index.html";
+        } else {
+          alert("Wrong credentials!");
+        }
+      } catch (err) {
+        alert("Login error: " + err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = "Login";
       }
-      const passHash = await hashPass(p);
-      let found=users.find(x=>x.user===u && x.passHash===passHash);
-      if(found){ localStorage.setItem("bharat_logged_in",u); localStorage.setItem("owner",u); location.href="index.html"; }
-      else alert("Wrong credentials!");
     }
 
-    function recover(){
+    async function recover(){
       let m=document.getElementById('recoverMobile').value.trim();
-      let users=JSON.parse(localStorage.getItem('bharat_users')||'[]');
-      let found=users.find(x=>x.shop?.mobile===m);
-      if(found) alert(`Username: ${found.user}\nIf you forgot your password or PIN, please re-register or contact support.`);
-      else alert("No account found!");
+      if(!m) return alert("Enter mobile number!");
+
+      const btn = document.getElementById('recoverBtn');
+      btn.disabled = true; btn.textContent = "Searching...";
+
+      try {
+        await waitForFirebase();
+        const q = window._query(
+          window._collection(window._db, "sellers"),
+          window._where("shop.mobile", "==", m)
+        );
+        const results = await window._getDocs(q);
+
+        if (!results.empty) {
+          const found = results.docs[0].data();
+          alert(`Username: ${found.user}\nIf you forgot your password or PIN, please re-register or contact support.`);
+        } else {
+          alert("No account found!");
+        }
+      } catch (err) {
+        alert("Recovery error: " + err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = "Recover";
+      }
     }
   </script>
+
   <!-- LOADER JS -->
 <script>
   window.addEventListener("load", () => {
